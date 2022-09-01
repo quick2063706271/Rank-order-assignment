@@ -12,7 +12,7 @@ def min_zero_row(zero_mat, mark_zero):
     min_row = [99999, -1]
 
     for row_num in range(zero_mat.shape[0]):
-        if np.sum(zero_mat[row_num] == True) > 0 and min_row[0] > np.sum(zero_mat[row_num] == True):
+        if 0 < np.sum(zero_mat[row_num] == True) < min_row[0]:
             min_row = [np.sum(zero_mat[row_num] == True), row_num]
 
     # Marked the specific row and column as False
@@ -34,7 +34,7 @@ def mark_matrix(mat):
 
     # Recording possible answer positions by marked_zero
     marked_zero = []
-    while (True in zero_bool_mat_copy):
+    while True in zero_bool_mat_copy:
         min_zero_row(zero_bool_mat_copy, marked_zero)
 
     # Recording the row and column positions seperately.
@@ -97,24 +97,24 @@ def adjust_matrix(mat, cover_rows, cover_cols):
     return cur_mat
 
 
-def hungarian_algorithm(mat):
-    dim = mat.shape[0]
-    cur_mat = mat
+def hungarian_algorithm(matrix):
+    dimension = matrix.shape[0]
+    cur_matrix = matrix
 
     # Step 1 - Every column and every row subtract its internal minimum
-    for row_num in range(mat.shape[0]):
-        cur_mat[row_num] = cur_mat[row_num] - np.min(cur_mat[row_num])
+    for row_idx in range(matrix.shape[0]):
+        cur_matrix[row_idx] = cur_matrix[row_idx] - np.min(cur_matrix[row_idx])
 
-    for col_num in range(mat.shape[1]):
-        cur_mat[:, col_num] = cur_mat[:, col_num] - np.min(cur_mat[:, col_num])
+    for col_idx in range(matrix.shape[1]):
+        cur_matrix[:, col_idx] = cur_matrix[:, col_idx] - np.min(cur_matrix[:, col_idx])
     zero_count = 0
-    while zero_count < dim:
+    while zero_count < dimension:
         # Step 2 & 3
-        ans_pos, marked_rows, marked_cols = mark_matrix(cur_mat)
+        ans_pos, marked_rows, marked_cols = mark_matrix(cur_matrix)
         zero_count = len(marked_rows) + len(marked_cols)
 
-        if zero_count < dim:
-            cur_mat = adjust_matrix(cur_mat, marked_rows, marked_cols)
+        if zero_count < dimension:
+            cur_matrix = adjust_matrix(cur_matrix, marked_rows, marked_cols)
 
     return ans_pos
 
