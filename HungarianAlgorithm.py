@@ -148,30 +148,17 @@ def hungarian_algorithm(matrix):
     return result
 
 
-def load_preference(matrix, doctors_capacity):
-    """Replicate columns in matrix according to different doctors_capacity
+def load_preference(preference_before, doctors_capacity):
+    """Replicate columns in matrix according to different doctors_capacity, and pad matrix with max value to achieve
+    a square matrix
 
     :param doctors_capacity:
-    :param matrix: a numpy matrix
+    :param preference: a numpy matrix
     :return: a modified matrix
     """
-    hungarian_matrix = matrix.copy()
-    cur_index = 0
-    for i in range(len(doctors_capacity)):
-        capacity = doctors_capacity[i]
-        hungarian_matrix = np.insert(hungarian_matrix,
-                           (capacity - 1) * [cur_index],
-                           matrix[:, [cur_index]],
-                           axis=1)
-        cur_index += capacity
-    return hungarian_matrix
-
-
-if __name__ == "__main__":
-    doctors_capacity = [2, 3, 1, 5]
-    preference = np.array([[0, 1, 2, 3], [0, 3, 1, 2], [1, 3, 2, 0], [3, 1, 0, 2], [3, 2, 0, 1]])
-    print(preference)
+    preference = preference_before.copy()
     hungarian_matrix = preference[:, 0]
+
     cur_index = 0
     for i in range(len(doctors_capacity)):
         capacity = doctors_capacity[i]
@@ -180,6 +167,48 @@ if __name__ == "__main__":
                                preference[:, [cur_index]],
                                axis=1)
         cur_index += capacity
-    result = hungarian_algorithm(preference)
+    zero_matrix = np.full((preference.shape[1] - preference.shape[0], preference.shape[1]), preference.max(),
+                          dtype=int)
+    preference = np.vstack((preference, zero_matrix))
+    return preference
+
+
+def transform_result(result, doctors_capacity, doc_name2id, num_patient):
+    """
+    Transform result into a dictionary(patient: doctor) and remove padding value
+    :param result: result matrix from Hungarian algorithm
+    :param doctors_capacity: dictionary contains doctor capacity
+    :param doc_name2id: dictionary contains name to doctor index
+    :param num_patient: number of patients
+    :return: a dictionary(patient: doctor)
+    """
     sorted_by_second = sorted(result, key=lambda tup: tup[0])
-    print(sorted_by_second)
+    doctors_range = [sum(doctors_capacity[: i]) for i in range(1, len(doctors_capacity) + 1)]
+    result = {}
+    for patient_idx in range(len(sorted_by_second)):
+        doctor_idx = sorted_by_second[patient_idx][1]
+        j = 0
+        while j < len(doctors_range) and doctor_idx >= doctors_range[j]:
+            j+=1
+        result[patient_idx] = doc_name2id.get(j)
+    final_result = {}
+    for patient_idx in range(num_patient):
+        final_result[patient_idx] = result[patient_idx]
+    return final_result
+
+
+if __name__ == "__main__":
+    doctors_capacity_2 = [2, 3, 1, 5, 1, 2, 1]
+    doc_name2id_2 = {0: "A", 1: "B", 2: "C", 3: "D", 4: "E", 5: "F", 6: "G"}
+    # rank from 0-3 high to low
+    preference_2 = np.array([[0, 1, 2, 3, 4, 5, 6],
+                             [0, 3, 1, 2, 6, 4, 5],
+                             [4, 6, 5, 1, 3, 2, 0],
+                             [3, 1, 5, 4, 6, 0, 2],
+                             [3, 2, 0, 4, 5, 6, 1],
+                             [6, 5, 4, 3, 2, 1, 0]])
+    preference_2 = load_preference(preference_2, doctors_capacity_2)
+    num_0 = (preference_2.shape[1] - preference_2.shape[0]) * preference_2.shape[1]
+    zero_matrix = np.zeros((preference_2.shape[1] - preference_2.shape[0], preference_2.shape[1]), dtype=int)
+    p = np.vstack((preference_2, zero_matrix))
+    print(hungarian_algorithm(p))
