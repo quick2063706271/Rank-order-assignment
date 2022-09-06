@@ -1,5 +1,6 @@
 # Rank-order-assignment
 Assignment for EN.580.437: Biomedical Data Design
+Group members: Kuai Yu, Ruitao Hu
 
 ## Description
 The goal of the project will be to write a piece of software that matches N patients with K doctors. 
